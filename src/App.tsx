@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function App() {
   let [isLoading, setIsLoading] = useState<boolean>(false);
-  let [user, setUser] = useState<Query>({
+  let [userParam, setUserPram] = useState<Query>({
     name: "",
     age: "",
     limit: 4,
@@ -15,23 +15,25 @@ export default function App() {
 
   function searchUser(data: Query) {
     setIsLoading(false);
-    setUser({
+    setUserPram({
       name: data.name,
       age: data.age,
       limit: data.limit,
-      offset: data.offset,
+      offset: data.offset < 0 ? 0 : data.offset,
     });
   }
 
   useEffect(() => {
-    requestUsers(user).then((data) => {
+    console.log("parametr ", userParam);
+    requestUsers(userParam).then((data) => {
       setResult(data);
       setIsLoading(true);
+      console.log(data);
     });
     requestUsersWithError({ name: "", age: "", limit: 4, offset: 0 }).catch(
       console.error
     );
-  }, [user]);
+  }, [userParam]);
 
   return (
     <div>
