@@ -75,6 +75,7 @@ function Layout({ users, cb, isLoading }: Iprops) {
       return name;
     });
   };
+  
   const handleInputChangeAge = (event: ChangeEvent<HTMLInputElement>) => {
     setInputAge(() => {
       const age = event.target.value;
