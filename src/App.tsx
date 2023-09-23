@@ -24,11 +24,9 @@ export default function App() {
   }
 
   useEffect(() => {
-    console.log("parametr ", userParam);
     requestUsers(userParam).then((data) => {
       setResult(data);
       setIsLoading(true);
-      console.log(data);
     });
     requestUsersWithError({ name: "", age: "", limit: 4, offset: 0 }).catch(
       console.error
