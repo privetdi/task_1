@@ -1,6 +1,6 @@
 import { requestUsers, requestUsersWithError, User, Query } from "./api";
 import "./styles.css";
-import Layout from "./components/layout";
+import UserList from "./components/userList";
 import { useEffect, useState } from "react";
 
 export default function App() {
@@ -12,7 +12,7 @@ export default function App() {
     offset: 0,
   });
   let [result, setResult] = useState<User[]>([]);
-  const [error, setError] = useState<String | null>(null); // Состояние для сообщения об ошибке
+  const [error, setError] = useState<String | null>(null);
 
   function searchUser(data: Query) {
     setIsLoading(false);
@@ -30,7 +30,7 @@ export default function App() {
         .then((data) => {
           setResult(data);
           setIsLoading(true);
-          setError(null); // Очищаем сообщение об ошибке при успешном запросе
+          setError(null);
         })
         .catch((error) => {
           console.error(
@@ -40,7 +40,6 @@ export default function App() {
           setError(
             "Произошла ошибка при запросе пользователей: " + error.message
           );
-          // Дополнительные действия по обработке ошибки, если необходимо
         });
     };
     requestUsersWithError({ name: "", age: "", limit: 4, offset: 0 }).catch(
@@ -54,7 +53,11 @@ export default function App() {
       {error ? (
         <div>{error}</div>
       ) : (
-        <Layout users={result} isLoading={isLoading} returnProps={searchUser} />
+        <UserList
+          users={result}
+          isLoading={isLoading}
+          onFilterChange={searchUser}
+        />
       )}
     </div>
   );

@@ -4,12 +4,13 @@ import React, {
   ChangeEvent,
   Dispatch,
   SetStateAction,
+  useRef,
 } from "react";
 import { Query, User } from "../api";
 
 interface Iprops {
   users: User[];
-  returnProps: (data: Query) => void;
+  onFilterChange: (data: Query) => void;
   isLoading: boolean;
 }
 
@@ -20,7 +21,20 @@ const button = {
   paddingBottom: "0px",
 };
 
-function Layout({ users, returnProps, isLoading }: Iprops) {
+function debounced<T extends (...args: any[]) => void>(
+  func: T,
+  timeout = 300
+): (...args: Parameters<T>) => void {
+  let timer: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func(...args);
+    }, timeout);
+  };
+}
+
+function UserList({ users, onFilterChange, isLoading }: Iprops) {
   const [name, setName] = useState<string>("");
   const [age, setAge] = useState<string>("");
   const [select, setSelect] = useState<number>(4);
@@ -44,17 +58,21 @@ function Layout({ users, returnProps, isLoading }: Iprops) {
     return newObject;
   }
 
+  const debouncedOnFilterChange = useRef(
+    debounced(onFilterChange, 800)
+  ).current;
+
   const handleIncrement = () => {
     setPage((prevPage) => {
       const nextPage = prevPage + 1;
-      returnProps(getParametersRequest("offset", nextPage, query));
+      onFilterChange(getParametersRequest("offset", nextPage, query));
       return nextPage;
     });
   };
 
   const handleDecrement = () => {
     setPage((prevPage) => {
-      returnProps(getParametersRequest("offset", prevPage - 1, query));
+      onFilterChange(getParametersRequest("offset", prevPage - 1, query));
       return prevPage - 1;
     });
   };
@@ -62,7 +80,7 @@ function Layout({ users, returnProps, isLoading }: Iprops) {
   const handleChangeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelect((prevSelect) => {
       const newValue: number = parseInt(event.target.value, 10);
-      returnProps(getParametersRequest("limit", newValue, query));
+      onFilterChange(getParametersRequest("limit", newValue, query));
       return newValue;
     });
   };
@@ -70,15 +88,15 @@ function Layout({ users, returnProps, isLoading }: Iprops) {
   const handleInputChangeName = (event: ChangeEvent<HTMLInputElement>) => {
     setName(() => {
       const name = event.target.value;
-      returnProps(getParametersRequest("name", name, query));
+      debouncedOnFilterChange(getParametersRequest("name", name, query));
       return name;
     });
   };
-  
+
   const handleInputChangeAge = (event: ChangeEvent<HTMLInputElement>) => {
     setAge(() => {
       const age = event.target.value;
-      returnProps(getParametersRequest("age", age, query));
+      debouncedOnFilterChange(getParametersRequest("age", age, query));
       return age;
     });
   };
@@ -137,4 +155,4 @@ function Layout({ users, returnProps, isLoading }: Iprops) {
   );
 }
 
-export default Layout;
+export default UserList;
