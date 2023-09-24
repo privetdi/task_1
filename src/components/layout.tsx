@@ -9,7 +9,7 @@ import { Query, User } from "../api";
 
 interface Iprops {
   users: User[];
-  cb: (data: Query) => void;
+  returnProps: (data: Query) => void;
   isLoading: boolean;
 }
 
@@ -20,10 +20,10 @@ const button = {
   paddingBottom: "0px",
 };
 
-function Layout({ users, cb, isLoading }: Iprops) {
-  const [inputName, setInputName] = useState<string>("");
-  const [inputAge, setInputAge] = useState<string>("");
-  const [selectedValue, setSelectedValue] = useState<number>(4);
+function Layout({ users, returnProps, isLoading }: Iprops) {
+  const [name, setName] = useState<string>("");
+  const [age, setAge] = useState<string>("");
+  const [select, setSelect] = useState<number>(4);
   const [page, setPage] = useState<number>(0);
   const [query, setQuery] = useState<Query>({
     name: "",
@@ -31,7 +31,7 @@ function Layout({ users, cb, isLoading }: Iprops) {
     limit: 4,
     offset: 0,
   });
-  function setCbValue<T extends keyof Query>(
+  function getParametersRequest<T extends keyof Query>(
     property: T,
     value: Query[T],
     prevObject: Query
@@ -46,39 +46,38 @@ function Layout({ users, cb, isLoading }: Iprops) {
 
   const handleIncrement = () => {
     setPage((prevPage) => {
-      let page = prevPage + 1;
-      cb(setCbValue("offset", page, query));
-      return page;
+      const nextPage = prevPage + 1;
+      returnProps(getParametersRequest("offset", nextPage, query));
+      return nextPage;
     });
   };
 
   const handleDecrement = () => {
     setPage((prevPage) => {
-      let page = prevPage - 1;
-      cb(setCbValue("offset", page, query));
-      return page;
+      returnProps(getParametersRequest("offset", prevPage - 1, query));
+      return prevPage - 1;
     });
   };
 
   const handleChangeSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedValue((prevSelect) => {
+    setSelect((prevSelect) => {
       const newValue: number = parseInt(event.target.value, 10);
-      cb(setCbValue("limit", newValue, query));
+      returnProps(getParametersRequest("limit", newValue, query));
       return newValue;
     });
   };
 
   const handleInputChangeName = (event: ChangeEvent<HTMLInputElement>) => {
-    setInputName(() => {
+    setName(() => {
       const name = event.target.value;
-      cb(setCbValue("name", name, query));
+      returnProps(getParametersRequest("name", name, query));
       return name;
     });
   };
   const handleInputChangeAge = (event: ChangeEvent<HTMLInputElement>) => {
-    setInputAge(() => {
+    setAge(() => {
       const age = event.target.value;
-      cb(setCbValue("age", age, query));
+      returnProps(getParametersRequest("age", age, query));
       return age;
     });
   };
@@ -88,45 +87,51 @@ function Layout({ users, cb, isLoading }: Iprops) {
       <div style={{ display: "flex" }}>
         <input
           type="text"
-          value={inputName}
+          value={name}
           onChange={handleInputChangeName}
           placeholder="Name"
         />
         <input
           type="Number"
-          value={inputAge}
+          value={age}
           onChange={handleInputChangeAge}
           placeholder="Age"
         />
       </div>
       {isLoading ? (
-        users.map((item, index) => {
-          return <div key={index}>{`${item.name}, ${item.age}`}</div>;
-        })
+        users.length > 0 ? (
+          users.map((item, index) => {
+            return <div key={index}>{`${item.name}, ${item.age}`}</div>;
+          })
+        ) : (
+          "Users not found"
+        )
       ) : (
         <div>Loading</div>
       )}
-      <div style={{ display: "flex", height: "30px", alignItems: "center" }}>
-        <p>By page</p>
-        <select value={selectedValue} onChange={handleChangeSelect}>
-          <option value={1}>1</option>
-          <option value={2}>2</option>
-          <option value={3}>3</option>
-          <option value={4}>4</option>
-        </select>
-        <p>page</p>
-        <button
-          disabled={page === 0 ? true : false}
-          onClick={handleDecrement}
-          style={button}
-        >
-          prev
-        </button>
-        <span>{page + 1}</span>
-        <button onClick={handleIncrement} style={button}>
-          next
-        </button>
-      </div>
+      {isLoading ? (
+        <div style={{ display: "flex", height: "30px", alignItems: "center" }}>
+          <p>By page</p>
+          <select value={select} onChange={handleChangeSelect}>
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+            <option value={4}>4</option>
+          </select>
+          <p>page</p>
+          <button
+            disabled={page === 0 ? true : false}
+            onClick={handleDecrement}
+            style={button}
+          >
+            prev
+          </button>
+          <span>{page + 1}</span>
+          <button onClick={handleIncrement} style={button}>
+            next
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

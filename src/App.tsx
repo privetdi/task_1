@@ -12,6 +12,7 @@ export default function App() {
     offset: 0,
   });
   let [result, setResult] = useState<User[]>([]);
+  const [error, setError] = useState<String | null>(null); // Состояние для сообщения об ошибке
 
   function searchUser(data: Query) {
     setIsLoading(false);
@@ -24,18 +25,37 @@ export default function App() {
   }
 
   useEffect(() => {
-    requestUsers(userParam).then((data) => {
-      setResult(data);
-      setIsLoading(true);
-    });
+    const fetchData = async () => {
+      requestUsers(userParam)
+        .then((data) => {
+          setResult(data);
+          setIsLoading(true);
+          setError(null); // Очищаем сообщение об ошибке при успешном запросе
+        })
+        .catch((error) => {
+          console.error(
+            "Произошла ошибка при запросе пользователей:",
+            error.message
+          );
+          setError(
+            "Произошла ошибка при запросе пользователей: " + error.message
+          );
+          // Дополнительные действия по обработке ошибки, если необходимо
+        });
+    };
     requestUsersWithError({ name: "", age: "", limit: 4, offset: 0 }).catch(
       console.error
     );
+    fetchData();
   }, [userParam]);
 
   return (
     <div>
-      <Layout users={result} isLoading={isLoading} cb={searchUser} />
+      {error ? (
+        <div>{error}</div>
+      ) : (
+        <Layout users={result} isLoading={isLoading} returnProps={searchUser} />
+      )}
     </div>
   );
 }
